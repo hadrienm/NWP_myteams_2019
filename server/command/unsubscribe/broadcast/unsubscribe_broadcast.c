@@ -11,7 +11,7 @@ static void *create_unsubscribe_broadcast_buffer(stoc_unsubscribe_t unsub)
 {
     void *buffer = NULL;
     size_t index = 0;
-    size_t size = unsubscribe_size;
+    size_t size = UNSUBSCRIBE_SIZE;
 
     buffer = malloc(size);
     memset(buffer, 0, size);
@@ -31,6 +31,10 @@ static char **push_array(char **list, char *str)
     size_t size = 1;
     size_t index = 0;
 
+    if (size_array(list) == 0) {
+        free_array(list);
+        list = NULL;
+    }
     for (; list && list[size] != NULL; ++size);
     tmp = malloc(sizeof(char *) * (size + 2));
     for (; list && list[index] != NULL; ++index)
@@ -42,15 +46,17 @@ static char **push_array(char **list, char *str)
 }
 
 void unsubscribe_set_broadcast(stoc_unsubscribe_t unsub, \
-char team_id[SIZE_ID], char *user_id, client_t **all)
+char team_id[SIZE_ID], char *user_id, server_data **server)
 {
     char **list = NULL;
     char *path = found_path_team(team_id);
     void *buffer = create_unsubscribe_broadcast_buffer(unsub);
 
-    list = create_broadcast_list(path);
+    for (team_t *t = (*server)->team; t; t = t->next)
+        if (strncmp(team_id, t->uuid, SIZE_ID - 1) == 0)
+            list = copy_array(t->user_subscribe);
     list = push_array(list, user_id);
-    send_unsubscribe_brodcast(buffer, team_id, all, list);
+    send_unsubscribe_brodcast(buffer, team_id, &(*server)->client, list);
     free(path);
     free(buffer);
     free_array(list);

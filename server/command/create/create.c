@@ -7,16 +7,6 @@
 
 #include "server.h"
 
-bool verify_name(char *str)
-{
-    if (!str)
-        return false;
-    for (int i = 0; str[i]; ++i)
-        if (str[i] == '/')
-            return false;
-    return true;
-}
-
 int write_create_in_file(char *str, ctos_create_t create, char temp[10])
 {
     FILE * pFile;
@@ -63,32 +53,51 @@ ctos_create_t create, client_t **client)
     return 1;
 }
 
-void create_switch(client_t *client, ctos_create_t create, \
-client_t **all, int n)
+void create_switch_two(int n, client_t *client, server_data **server, \
+ctos_create_t create)
 {
     char *new_uuid = make_random_uuid();
+    int k = 0;
 
-    switch (n) {
-    case 0:
-        if (add_teams(&client, create, all, new_uuid) == 2)
-            return send_rfc(&client, set_create_rfc(506), 0);
-        break;
-    case 2:
-        if (add_channel(&client, create, all, new_uuid) == 2)
-            return send_rfc(&client, set_create_rfc(506), 0);
-        break;
-    case 3:
-        if (add_thread(&client, create, all, new_uuid) == 2)
-            return send_rfc(&client, set_create_rfc(506), 0);
-        break;
-    case 4:
-        add_message(&client, create, all);
-        break;
+    if (n == 2) {
+        k = add_channel(&client, create, server, new_uuid);
+        if (k == 2)
+            send_rfc(&client, set_create_rfc(506), 0);
+        else if (k == 0)
+            send_rfc(&client, set_create_rfc(401), 0);
+    } else if (n == 3) {
+        k = add_thread(&client, create, server, new_uuid);
+        if (k == 2)
+            send_rfc(&client, set_create_rfc(506), 0);
+        else if (k == 0)
+            send_rfc(&client, set_create_rfc(401), 0);
+    } else {
+        add_message(&client, create, server, new_uuid);
     }
     free(new_uuid);
 }
 
-void create(client_t *client, client_t **all)
+void create_switch(client_t *client, ctos_create_t create, \
+server_data **server, int n)
+{
+    char *new_uuid = make_random_uuid();
+    int k = 0;
+
+    switch (n) {
+    case 0:
+        k = add_teams(&client, create, server, new_uuid);
+        if (k == 2)
+            send_rfc(&client, set_create_rfc(506), 0);
+        else if (k == 0)
+            send_rfc(&client, set_create_rfc(401), 0);
+        break;
+    default:
+        create_switch_two(n, client, server, create);
+    }
+    free(new_uuid);
+}
+
+void create(client_t *client, server_data **server)
 {
     ctos_create_t create;
 
@@ -99,5 +108,5 @@ void create(client_t *client, client_t **all)
     int n = count_in_str(client->use_path, '/');
     if (n > 4 || n < 0)
         return;
-    create_switch(client, create, all, n);
+    create_switch(client, create, server, n);
 }

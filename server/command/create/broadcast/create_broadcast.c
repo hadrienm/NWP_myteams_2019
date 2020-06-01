@@ -21,11 +21,11 @@ void *buffer)
 
 void *create_set_broadcast_buffer(stoc_create_t c)
 {
-    void *buffer = malloc(create_size);
+    void *buffer = malloc(CREATE_SIZE);
     size_t index = 0;
     c.event = false;
 
-    memset(buffer, 0, create_size);
+    memset(buffer, 0, CREATE_SIZE);
     memcpy(buffer, &c.header.name, sizeof(int));
     index += sizeof(int);
     memcpy(buffer + index, &c.header.size, sizeof(size_t));
@@ -42,49 +42,31 @@ void *create_set_broadcast_buffer(stoc_create_t c)
     return buffer;
 }
 
-static char **push_array(char **list, char *str)
+static char *handle_line(char *line)
 {
-    char **tmp = NULL;
-    size_t size = 1;
+    char *id = malloc(sizeof(char) * SIZE_ID);
     size_t index = 0;
 
-    for (; list && list[size] != NULL; ++size);
-    tmp = malloc(sizeof(char *) * (size + 2));
-    for (; list && list[index] != NULL; ++index)
-        tmp[index] = strdup(list[index]);
-    tmp[index] = strdup(str);
-    tmp[index + 1] = NULL;
-    free_array(list);
-    return tmp;
+    memset(id, 0, SIZE_ID);
+    for (int i = 0; index < SIZE_ID - 1; ++index, ++i)
+        id[i] = line[index];
+    return id;
 }
 
-static char **handle_list(char *line, char **list)
-{
-    char *tmp = malloc(sizeof(char) * SIZE_ID);
-    memset(tmp, 0, SIZE_ID);
-
-    for (int j = 0; j < SIZE_ID - 1; ++j)
-        tmp[j] = line[j];
-    return push_array(list, tmp);
-}
-
-char **create_broadcast_subscribe_list(char *path, char * user_uid)
+char **create_broadcast_subscribe_list(team_t *t, char *user_id)
 {
     char **list = NULL;
-    char *line = NULL;
-    FILE * file;
-    size_t useless = 0;
+    char *tmp = NULL;
     size_t index = 0;
 
-    if (path == NULL)
+    if (t->user_subscribe == NULL)
         return NULL;
-    file = fopen(path, "r");
-    if (file == NULL)
-        return NULL;
-    for (; getline(&line, &useless, file) != -1; ++index)
-        if (index > 0 && strlen(line) >= SIZE_ID && \
-strncmp(line, user_uid, SIZE_ID - 1) != 0)
-            list = handle_list(line, list);
-    fclose(file);
+    list = malloc(sizeof(char *) * (size_array(t->user_subscribe) + 1));
+    for (size_t i = 0; t->user_subscribe[i] != NULL; ++i, ++index) {
+        tmp = handle_line(t->user_subscribe[i]);
+        list[index] = strdup(tmp);
+        free(tmp);
+    }
+    list[index] = NULL;
     return list;
 }

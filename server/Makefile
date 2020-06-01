@@ -19,11 +19,24 @@ SRCS	= ./main.c \
 			../utils_function/free_array.c \
 			../utils_function/size_array.c \
 			./ls_utils.c \
+			./server_gestion/load_all/make_save/make_save.c \
+			./server_gestion/load_all/make_save/save_thread.c \
+			./server_gestion/load_all/delete.c \
+			./server_gestion/load_all/load_channel.c \
+			./server_gestion/load_all/load_replies.c \
+			./server_gestion/load_all/load_teams.c \
+			./server_gestion/load_all/load_threads.c \
+			./server_gestion/load_all/utils_load.c \
 			./server_gestion/set_server.c \
 			./server_gestion/init.c \
 			./server_gestion/delete.c \
 			./server_gestion/server_loop.c \
 			./server_gestion/get_binary.c \
+			./server_gestion/load_client.c \
+			./server_gestion/load_message/load_messages.c \
+			./server_gestion/load_message/load_corresponding.c \
+			./server_gestion/push_client.c \
+			./server_gestion/push_messages.c \
 			./argument_gestion.c \
 			./link_list/add_node.c \
 			./link_list/delete_node.c \
@@ -31,12 +44,10 @@ SRCS	= ./main.c \
 			./global_variable/ptr_function.c \
 			./global_variable/command_list.c \
 			./global_variable/rfc_message.c \
-			./global_variable/size.c \
 			./command/help/help.c \
 			./command/help/send_help.c \
 			./command/login/login.c \
 			./command/login/login_broadcast.c \
-			./command/login/login_check_user.c \
 			./command/login/send_login.c \
 			./command/logout/logout.c \
 			./command/logout/send_logout.c \
@@ -76,18 +87,26 @@ SRCS	= ./main.c \
 			./command/create/broadcast/create_broadcast.c \
 			./command/create/broadcast/send_broadcast.c \
 			./command/create/create.c \
+			./command/create/find_teams.c \
+			./command/create/find_channel_path.c \
 			./command/create/create_channel.c \
 			./command/create/create_get_uuid.c \
 			./command/create/create_replies.c \
 			./command/create/create_teams.c \
 			./command/create/create_thread.c\
+			./command/create/init_reply.c \
 			./command/create/send_create.c \
+			./command/create/utils.c \
 			./command/list/list.c \
 			./command/list/get_info.c \
 			./command/list/link_list.c \
 			./command/list/list_info.c \
 			./command/list/send_list.c \
-			./command/info.c
+			./command/list/list_thread.c \
+			./command/list/list_channel.c \
+			./command/list/list_replies.c \
+			./command/info/info.c \
+			./command/info/get_info.c
 
 OBJS	= $(SRCS:.c=.o)
 

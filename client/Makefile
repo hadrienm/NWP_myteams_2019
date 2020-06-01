@@ -25,6 +25,9 @@ SRCS	= ./main.c \
 			./client_gestion/init_client.c \
 			./client_gestion/set_client.c \
 			./client_gestion/get_command.c \
+			./client_gestion/utils_client.c \
+			./client_gestion/launch_client_command.c \
+			./client_gestion/read_server_answere.c \
 			./command/help.c \
 			./command/login.c \
 			./command/logout.c \

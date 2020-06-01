@@ -7,15 +7,13 @@
 
 #include "client.h"
 
-void use_decrypt(stoc_header_t *header, size_t readed, client_data **client)
+void use_decrypt(client_data **client)
 {
     char answer[RFC_MESSAGE_LENGTH] = {0};
+    size_t index = HEADER_SIZE;
 
-    void *k = malloc(header->size);
-    read((*client)->master_socket, k, header->size);
-    memcpy(&answer, k, RFC_MESSAGE_LENGTH);
+    memcpy(&answer, (*client)->read_buffer + index, RFC_MESSAGE_LENGTH);
     dprintf(1, "%s", answer);
-    free(k);
 }
 
 void use(client_data **client)
@@ -30,10 +28,10 @@ void use(client_data **client)
     memset(&use.thread_uuid, 0, SIZE_ID);
     if (size_array((*client)->command) > 3)
         sprintf(use.thread_uuid, "%s", (*client)->command[3]);
-    if (size_array((*client)->command) > 2)
-        sprintf(use.channel_uuid, "%s", (*client)->command[2]);
-    if (size_array((*client)->command) > 1)
-        sprintf(use.team_uuid, "%s", (*client)->command[1]);
+    (size_array((*client)->command) > 2) ? \
+sprintf(use.channel_uuid, "%s", (*client)->command[2]) : 0;
+    (size_array((*client)->command) > 1) ? \
+sprintf(use.team_uuid, "%s", (*client)->command[1]) : 0;
     write((*client)->master_socket, &use, sizeof(ctos_use_t));
     free((*client)->command);
     (*client)->command = NULL;

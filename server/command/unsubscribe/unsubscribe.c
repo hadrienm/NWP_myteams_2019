@@ -18,18 +18,18 @@ int determine_length_int(int c)
     return len;
 }
 
-static void check_status(ctos_unsubscribe_t unsub, client_t **all, \
+static void check_status(ctos_unsubscribe_t unsub, server_data **server, \
 client_t **client)
 {
     int status = 0;
     command_status_t rfc;
 
-    status = found_team(unsub.team_uuid, (*client)->uuid);
+    status = found_team(unsub.team_uuid, (*client)->uuid, server);
     if (status == 2) {
         rfc = unsubscribe_set_rfc(503, unsub.team_uuid);
         unsubscribe_send_rfc(client, rfc, 0);
     } else if (status == 0) {
-        set_unsubscribe_success(client, unsub.team_uuid, all);
+        set_unsubscribe_success(client, unsub.team_uuid, server);
         server_event_user_leave_a_team(unsub.team_uuid, (*client)->uuid);
     } else {
         rfc = unsubscribe_set_rfc(200, NULL);
@@ -37,7 +37,7 @@ client_t **client)
     }
 }
 
-void unsubscribe(client_t *client, client_t **all)
+void unsubscribe(client_t *client, server_data **server)
 {
     ctos_unsubscribe_t unsubscribe;
     command_status_t rfc;
@@ -49,6 +49,6 @@ void unsubscribe(client_t *client, client_t **all)
     else if (strlen(unsubscribe.team_uuid) == 0)
         rfc = unsubscribe_set_rfc(401, NULL);
     else
-        return check_status(unsubscribe, all, &client);
+        return check_status(unsubscribe, server, &client);
     unsubscribe_send_rfc(&client, rfc, 0);
 }

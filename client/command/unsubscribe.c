@@ -7,20 +7,16 @@
 
 #include "client.h"
 
-void unsubscribe_decrypt(stoc_header_t *header, size_t readed, \
-client_data **client)
+void unsubscribe_decrypt(client_data **client)
 {
     char team_id[SIZE_ID];
     char user_id[SIZE_ID];
-    size_t index = 0;
+    size_t index = HEADER_SIZE;
 
-    void *k = malloc(header->size);
-    read((*client)->master_socket, k, header->size);
-    memcpy(&user_id, k, SIZE_ID);
+    memcpy(&user_id, (*client)->read_buffer + index, SIZE_ID);
     index += SIZE_ID;
-    memcpy(&team_id, k + index, SIZE_ID);
+    memcpy(&team_id, (*client)->read_buffer + index, SIZE_ID);
     client_print_unsubscribed(user_id, team_id);
-    free(k);
 }
 
 void unsubscribe(client_data **client)

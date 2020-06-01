@@ -43,7 +43,7 @@ char *get_uuid_parent_folder(char *path)
     return str;
 }
 
-static char *cut_path(char *path)
+char *cut_path(char *path)
 {
     int len = 0;
     char *str = NULL;

@@ -27,72 +27,59 @@ static bool teams_read(char *path, char *uuid)
     return false;
 }
 
-void find_teams(client_t ** client, char *str)
+void find_teams(char *uuid, server_data **server, client_t **client)
 {
-    char **list_directories = ls_directories("./save/");
-    for (int i = 0; list_directories && list_directories[i]; ++i) {
-        char *path = my_strcat(list_directories[i], "/default.txt");
-        if (teams_read(path, str)) {
+    for (team_t *t = (*server)->team; t; t = t->next) {
+        if (strncmp(t->uuid, uuid, SIZE_ID - 1) == 0) {
             (*client)->use_path != NULL ? free((*client)->use_path) : 0;
-            (*client)->use_path = NULL;
-            (*client)->use_path = strdup(list_directories[i]);
-            free(path);
-            free_array(list_directories);
+            (*client)->use_path = strdup(t->path);
             return;
-        } else
-            free(path);
+        }
     }
     (*client)->use_path != NULL ? free((*client)->use_path) : 0;
     (*client)->use_path = NULL;
-    free_array(list_directories);
 }
 
-void find_channel(client_t ** client, char *str)
+void find_channel(char *uuid, server_data **server, client_t **client)
 {
-    char *save = NULL;
-    char **list_directories = NULL;
+    team_t *t = NULL;
 
-    if ((*client)->use_path == NULL)
-        return;
-    list_directories = ls_directories((*client)->use_path);
-    for (int i = 0; list_directories && list_directories[i]; ++i) {
-        char *path = my_strcat(list_directories[i], "/default.txt");
-        if (teams_read(path, str)) {
-            save = strdup((*client)->use_path);
-            free((*client)->use_path);
-            (*client)->use_path = strdup(list_directories[i]);
-            free(save);
-            free(path);
-            return free_array(list_directories);
-        } else
-            free(path);
+    for (t = (*server)->team; t; t = t->next)
+        if (strncmp(t->path, (*client)->use_path, strlen(t->path) - 1) == 0)
+            break;
+    if (t == NULL) {
+        (*client)->use_path != NULL ? free((*client)->use_path) : 0;
+        (*client)->use_path = NULL;
+    }
+    for (channel_t *ch = t->channel; ch; ch = ch->next) {
+        if (strncmp(ch->uuid, uuid, SIZE_ID - 1) == 0) {
+            (*client)->use_path != NULL ? free((*client)->use_path) : 0;
+            (*client)->use_path = strdup(ch->path);
+            return;
+        }
     }
     (*client)->use_path != NULL ? free((*client)->use_path) : 0;
     (*client)->use_path = NULL;
-    free_array(list_directories);
 }
 
-void find_thread(client_t ** client, char *str)
+void find_thread(char *uuid, server_data **server, client_t **client)
 {
-    char *save = NULL;
-    char **list_directories = NULL;
+    team_t *t;
+    channel_t *ch;
 
-    if ((*client)->use_path == NULL)
-        return;
-    list_directories = ls_directories((*client)->use_path);
-    for (int i = 0; list_directories && list_directories[i]; ++i) {
-        char *path = my_strcat(list_directories[i], "/default.txt");
-        if (teams_read(path, str)) {
-            save = strdup((*client)->use_path);
-            free((*client)->use_path);
-            (*client)->use_path = strdup(list_directories[i]);
-            free(save);
-            free(path);
-            return free_array(list_directories);
-        } else
-            free(path);
+    for (t = (*server)->team; t; t = t->next) {
+        for (ch = t->channel; ch && strcmp(ch->path, \
+(*client)->use_path) != 0; ch = ch->next);
+        if (ch && strcmp(ch->path, (*client)->use_path) == 0)
+                break;
     }
-    (*client)->use_path != NULL ? free((*client)->use_path) : 0;
-    (*client)->use_path = NULL;
-    free_array(list_directories);
+    if (ch == NULL)
+        return free_path(*client);
+    for (thread_t *th = ch->thread; th; th = th->next)
+        if (strncmp(th->uuid, uuid, SIZE_ID - 1) == 0) {
+            free_path(*client);
+            (*client)->use_path = strdup(th->path);
+            return;
+        }
+    free_path(*client);
 }

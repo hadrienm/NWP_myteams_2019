@@ -15,7 +15,8 @@ size_t list_link_size(list_list_t *list)
     return size;
 }
 
-static void add_first_list(list_list_t **list, char **details, location_t which)
+static void add_first_list(list_list_t **list, char **details, location_t \
+which)
 {
     list_list_t *new_node = malloc(sizeof(list_list_t));
 
@@ -24,7 +25,7 @@ static void add_first_list(list_list_t **list, char **details, location_t which)
     memset(new_node->list.team_uuid, 0, SIZE_ID);
     memset(new_node->list.body, 0, DEFAULT_BODY_LENGTH);
     new_node->list.header.name = LIST;
-    new_node->list.header.size = list_content_size;
+    new_node->list.header.size = LIST_CONTENT_SIZE;
     sprintf(new_node->list.team_uuid, "%s", details[1]);
     sprintf(new_node->list.name, "%s", details[0]);
     new_node->list.time = atoi(details[2]);
@@ -44,7 +45,7 @@ static void complement(char **details, list_list_t *new_node, location_t which)
     memset(new_node->list.team_uuid, 0, SIZE_ID);
     memset(new_node->list.body, 0, DEFAULT_BODY_LENGTH);
     new_node->list.header.name = LIST;
-    new_node->list.header.size = list_content_size;
+    new_node->list.header.size = LIST_CONTENT_SIZE;
     sprintf(new_node->list.team_uuid, "%s", details[1]);
     sprintf(new_node->list.name, "%s", details[0]);
     new_node->list.time = atoi(details[2]);

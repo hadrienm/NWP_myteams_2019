@@ -42,67 +42,47 @@ char *found_path_team(char team_id[SIZE_ID])
     free_array(folder_list);
 }
 
-static bool delete_user(FILE *file, char *user_id, char *path)
+static char **delete_user(char **array, int i)
 {
-    char *line = NULL;
-    char *command = NULL;
-    char *number = NULL;
-    size_t useless = 0;
+    char **save = NULL;
+    int n = 0;
+    int k = 0;
 
-    for (int index = 2; getline(&line, &useless, file) != -1; ++index) {
-        if (strncmp(line, user_id, strlen(user_id) - 1) == 0) {
-            number = malloc(sizeof(char) * (determine_length_int(index) + 1));
-            memset(number, 0, determine_length_int(index) + 1);
-            my_const_strcat(&command, "sed -i '");
-            sprintf(number, "%d", index);
-            my_const_strcat(&command, number);
-            my_const_strcat(&command, "d' ");
-            my_const_strcat(&command, path);
-            FILE *file2 = popen(command, "w");
-            pclose(file2);
-            free(number);
-            return true;
-        }
+    if (array == NULL)
+        return NULL;
+    save = malloc(sizeof(char *) * (size_array(array)));
+    for (; array[n]; ++n) {
+        if (n == i)
+            continue;
+        save[k] = strdup(array[n]);
+        ++k;
     }
-    return false;
+    save[k] = NULL;
+    return save;
 }
 
-static int hande_line(char team_id[SIZE_ID], char *user_id, char *tmp, \
-FILE *file)
+static int is_subscribe(char *user_id, team_t *t)
 {
-    char *line = NULL;
-    size_t useless = 0;
+    char **save;
 
-    getline(&line, &useless, file);
-    if (strncmp(line, team_id, SIZE_ID - 1) == 0) {
-        if (delete_user(file, user_id, tmp) == true) {
-            fclose(file);
+    for (int i = 0; t->user_subscribe && t->user_subscribe[i]; ++i) {
+        if (strncmp(t->user_subscribe[i], user_id, SIZE_ID - 1) == 0) {
+            save = delete_user(t->user_subscribe, i);
+            free_array(t->user_subscribe);
+            t->user_subscribe = copy_array(save);
+            free_array(save);
             return 0;
         }
-        fclose(file);
-        return 1;
     }
-    return 2;
+    return 1;
 }
 
-int found_team(char team_id[SIZE_ID], char *user_id)
+int found_team(char team_id[SIZE_ID], char *user_id, server_data **server)
 {
-    char **folder_list = ls_directories("./save/");
-    char *tmp = NULL;
-    FILE * file;
-    int status = 0;
-
-    for (int i = 0; folder_list && folder_list[i] != NULL; ++i) {
-        my_const_strcat(&tmp, folder_list[i]);
-        my_const_strcat(&tmp, "/default.txt");
-        file = fopen(tmp, "r");
-        if (file == NULL)
-            return false;
-        status = hande_line(team_id, user_id, tmp, file);
-        if (status == 1 || status == 0)
-            return status;
+    for (team_t *t = (*server)->team; t; t = t->next) {
+        if (strncmp(team_id, t->uuid, SIZE_ID - 1) != 0)
+            continue;
+        return is_subscribe(user_id, t);
     }
-    free_array(folder_list);
-    free(tmp);
     return 2;
 }

@@ -11,7 +11,7 @@ static void delete_useless_part_of_command(ctos_header_t header, \
 server_data **server, client_t **tmp, char *save)
 {
     if ((*tmp)->read_size >= sizeof(ctos_header_t) + header.size) {
-        command[header.name]((*tmp), &(*server)->client);
+        command[header.name]((*tmp), server);
         if ((*tmp)->read_size - sizeof(ctos_header_t) - header.size > 0) {
             save = malloc(sizeof(char) * ((*tmp)->read_size - \
 sizeof(ctos_header_t) - header.size + 1));

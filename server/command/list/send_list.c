@@ -13,7 +13,7 @@ command_status_t list_set_rfc(int status, char team_id[SIZE_ID])
 
     memset(&rfc, 0, sizeof(rfc));
     rfc.header.name = RFC;
-    rfc.header.size = rfc_content_size;
+    rfc.header.size = RFC_CONTENT_SIZE;
     memset(rfc.id, 0, SIZE_ID);
     if (status == 200) {
         sprintf(rfc.rfc_message, "%s", rfc_message[CODE_200]);
@@ -25,9 +25,9 @@ command_status_t list_set_rfc(int status, char team_id[SIZE_ID])
 void list_send_rfc(client_t **client, command_status_t rfc, size_t index)
 {
     if (index == 0) {
-        (*client)->answer = malloc(rfc_size);
-        memset((*client)->answer, 0, rfc_size);
-        (*client)->answer_size = rfc_size;
+        (*client)->answer = malloc(RFC_SIZE);
+        memset((*client)->answer, 0, RFC_SIZE);
+        (*client)->answer_size = RFC_SIZE;
     }
     memcpy((*client)->answer + index, &rfc.header.name, sizeof(int));
     index += sizeof(int);
@@ -38,7 +38,8 @@ void list_send_rfc(client_t **client, command_status_t rfc, size_t index)
     memcpy((*client)->answer + index, &rfc.id, SIZE_ID);
 }
 
-static size_t list_set_buffer(size_t index, client_t **client, list_list_t *tmp)
+static size_t list_set_buffer(size_t index, client_t **client, list_list_t \
+*tmp)
 {
     memcpy((*client)->answer + index, &tmp->list.header.name, sizeof(int));
     index += sizeof(int);
@@ -69,7 +70,7 @@ void send_list_success(client_t **client, char *str)
 
     create_link_list(str, &link_list, client);
     link_size = list_link_size(link_list);
-    size = list_size * link_size + rfc_size;
+    size = LIST_SIZE * link_size + RFC_SIZE;
     (*client)->answer = malloc(size);
     memset((*client)->answer, 0, size);
     for (list_list_t *tmp = link_list; tmp != NULL; tmp = tmp->next)

@@ -30,17 +30,17 @@ static char **get_arg_fill(char **arg, char *line)
     int j = 0;
 
     for (int i = 0; line[i]; ++i) {
-        if (line[i] == '\"') {
-            k = 0;
-            j = 0;
-            for (k = i + 1; line[k] && line[k] != '\"'; ++k);
-            arg[len] = malloc(sizeof(char) * (k + 1));
-            for (k = i + 1; line[k] && line[k] != '\"'; arg[len][j] = \
+        if (line[i] != '\"')
+            continue;
+        k = 0;
+        j = 0;
+        for (k = i + 1; line[k] && line[k] != '\"'; ++k);
+        arg[len] = malloc(sizeof(char) * (k + 1));
+        for (k = i + 1; line[k] && line[k] != '\"'; arg[len][j] = \
 line[k], ++k, ++j);
-            arg[len][j] = 0;
-            ++len;
-            i = k;
-        }
+        arg[len][j] = 0;
+        ++len;
+        i = k;
         if (!line[i])
             break;
     }
@@ -56,12 +56,12 @@ char **get_arg(char *command, char *line)
     if (line == NULL)
         return NULL;
     for (int i = 0; line && line[i]; ++i) {
-        if (line[i] == '\"') {
-            int k = 0;
-            for (k = i + 1; line[k] && line[k] != '\"'; ++k);
-            ++len;
-            i = k;
-        }
+        if (line[i] != '\"')
+            continue;
+        int k = 0;
+        for (k = i + 1; line[k] && line[k] != '\"'; ++k);
+        ++len;
+        i = k;
         if (!line[i])
             break;
     }

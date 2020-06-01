@@ -79,11 +79,11 @@ location_t determine_use(char *str)
     }
 }
 
-void list(client_t *client, client_t **client_list)
+void list(client_t *client, server_data **server)
 {
     ctos_list_t list;
     command_status_t rfc;
-    char *str = NULL;
+    int n = 0;
 
     if (client->uuid == NULL) {
         rfc = list_set_rfc(500, NULL);
@@ -91,15 +91,15 @@ void list(client_t *client, client_t **client_list)
     }
     memset(&list, 0, sizeof(list));
     memcpy(&list, client->readbuffer, sizeof(ctos_list_t));
-    if (count_in_str(client->use_path, '/') == 4)
-        str = list_replies(client->use_path);
-    else if (client->use_path == NULL)
-        str = list_all_folders("./save/");
-    else
-        str = list_all_folders(client->use_path);
-    if (str != NULL)
-        send_list_success(&client, str);
-    else
-        list_send_rfc(&client, list_set_rfc(200, NULL), 0);
-    free(str);
+    n = count_in_str(client->use_path, '/');
+    switch (n) {
+    case 0:
+        return list_teams(server, &client);
+    case 2:
+        return list_channel(server, &client);
+    case 3:
+        return list_thread(server, &client);
+    default:
+        return list_repli(server, &client);
+    }
 }

@@ -9,7 +9,7 @@
 
 volatile int stop = 1;
 
-static inline void ctrlhandler(int handler)
+void ctrlhandler(int handler)
 {
     (void)handler;
     stop = 0;

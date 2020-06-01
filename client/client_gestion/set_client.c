@@ -15,7 +15,7 @@ void handle_fd(client_data **client)
     FD_SET((*client)->master_socket, &((*client)->readfds));
     if ((*client)->data != NULL)
         FD_SET((*client)->master_socket, &((*client)->writefds));
-    if (select(FD_SETSIZE, &(*client)->readfds, \
+    if (select((*client)->master_socket + 1, &(*client)->readfds, \
 &(*client)->writefds, NULL, NULL) < 0) {
         stop = 0;
     }

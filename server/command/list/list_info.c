@@ -33,10 +33,10 @@ char *list_replies(char *path)
     int read = 0;
     size_t useless = 0;
     char *line = NULL;
-    char *save = NULL;
-    char *answer = get_all_info(get_name(path), path);
-    char *save2 = NULL;
+    char *save = get_name(path);
+    char *answer = get_all_info(save, path);
 
+    free(save);
     if (answer == NULL)
         return NULL;
     if (file != NULL) {
@@ -46,42 +46,29 @@ char *list_replies(char *path)
     }
     if (answer != NULL)
         answer[strlen(answer) - 1] = 0;
+    free(line);
+    free(str);
     return answer;
 }
 
-static char *list_all_folders2(char *list, char *answer, char *list_folder)
+void list_teams(server_data **s, client_t **client)
 {
-    char *save = strdup(answer);
-    char *save2 = NULL;
-    char *info = NULL;
+    char *str = NULL;
+    char buff[30];
 
-    free(answer);
-    info = get_all_info(list, list_folder);
-    save2 = my_strcat(save, info);
-    answer = my_strcat(save2, "\n");
-    free(save);
-    free(info);
-    free(save2);
-    return answer;
-}
-
-char *list_all_folders(char *path)
-{
-    char **list_folder = ls_directories(path);
-    char *answer = NULL;
-    char *save = NULL;
-
-    if (list_folder == NULL)
-        return NULL;
-    for (int i = 0; list_folder[i]; ++i) {
-        char *list = get_name(list_folder[i]);
-        if (answer == NULL) {
-            answer = get_all_info(list, list_folder[i]);
-            my_const_strcat(&answer, "\n");
-        } else
-            answer = list_all_folders2(list, answer, list_folder[i]);
-        free(list);
+    for (team_t *t = (*s)->team; t; t = t->next) {
+        memset(buff, 0, 30);
+        sprintf(buff, "%d", t->timestamp);
+        my_const_strcat(&str, t->name);
+        my_const_strcat(&str, "\t");
+        my_const_strcat(&str, t->uuid);
+        my_const_strcat(&str, "\t");
+        my_const_strcat(&str, buff);
+        my_const_strcat(&str, "\t");
+        my_const_strcat(&str, t->description);
+        my_const_strcat(&str, "\n");
     }
-    free_array(list_folder);
-    return answer;
+    if (str)
+        send_list_success(client, str);
+    free(str);
 }

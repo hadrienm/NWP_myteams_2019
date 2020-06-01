@@ -7,50 +7,48 @@
 
 #include "client.h"
 
-static int list_int(void *k, int index, char *a[4])
+static int list_int(char *buffer, int index, stoc_list_t l)
 {
     int timestamp;
     location_t location;
 
-    memcpy(&timestamp, k + index, sizeof(int));
+    memcpy(&timestamp, buffer + index, sizeof(int));
     index += sizeof(int);
-    memcpy(&location, k + index, sizeof(location_t));
+    memcpy(&location, buffer + index, sizeof(location_t));
     switch (location) {
     case TEAM:
-        return client_print_teams(a[0], a[3], a[2]);
+        return client_print_teams(l.team_uuid, l.name, l.body);
     case CHANNEL:
-        return client_team_print_channels(a[0], a[3], a[2]);
+        return client_team_print_channels(l.team_uuid, l.name, l.body);
     case THREAD:
-        return client_channel_print_threads(a[0], a[1], (time_t)timestamp, \
-a[3], a[2]);
+        return client_channel_print_threads(l.team_uuid, l.user_uuid, \
+(time_t)timestamp, l.name, l.body);
     case REPLIES:
-        return client_thread_print_replies(a[0], a[1], (time_t)timestamp, \
-a[2]);
+        return client_thread_print_replies(l.team_uuid, l.user_uuid, \
+(time_t)timestamp, l.body);
     default:
         break;
     }
 }
 
-void list_decrypt(stoc_header_t *header, size_t readed, client_data **client)
+void list_decrypt(client_data **client)
 {
+    stoc_list_t l;
     char team_id[SIZE_ID];
     char uuid[SIZE_ID];
     char body[DEFAULT_BODY_LENGTH];
     char name[DEFAULT_NAME_LENGTH];
-    size_t index = 0;
+    size_t index = HEADER_SIZE;
 
-    void *k = malloc(header->size);
-    read((*client)->master_socket, k, header->size);
-    memcpy(&team_id, k, SIZE_ID);
+    memcpy(&l.team_uuid, (*client)->read_buffer + index, SIZE_ID);
     index += SIZE_ID;
-    memcpy(&uuid, k + index, SIZE_ID);
+    memcpy(&l.user_uuid, (*client)->read_buffer + index, SIZE_ID);
     index += SIZE_ID;
-    memcpy(&body, k + index, DEFAULT_BODY_LENGTH);
+    memcpy(&l.body, (*client)->read_buffer + index, DEFAULT_BODY_LENGTH);
     index += DEFAULT_BODY_LENGTH;
-    memcpy(&name, k + index, DEFAULT_NAME_LENGTH);
+    memcpy(&l.name, (*client)->read_buffer + index, DEFAULT_NAME_LENGTH);
     index += DEFAULT_NAME_LENGTH;
-    list_int(k, index, (char *[4]){team_id, uuid, body, name});
-    free(k);
+    list_int((*client)->read_buffer, index, l);
 }
 
 void list(client_data **client)

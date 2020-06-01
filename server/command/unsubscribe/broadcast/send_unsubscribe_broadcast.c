@@ -25,15 +25,15 @@ RFC_MESSAGE_LENGTH + SIZE_ID * 2;
 static void check_client_unsusbcribe_broadcast(char **client_team_list, \
 void *buffer, client_t **tmp, int i)
 {
-    size_t size = unsubscribe_size;
+    size_t size = UNSUBSCRIBE_SIZE;
 
     if ((*tmp)->answer == NULL && (*tmp)->status == CONNECT && \
-my_strcmp(client_team_list[i], (*tmp)->uuid) == 0) {
+strncmp(client_team_list[i], (*tmp)->uuid, SIZE_ID - 1) == 0) {
         (*tmp)->answer = malloc(size);
         memcpy((*tmp)->answer, buffer, size);
         (*tmp)->answer_size = size;
     } else if ((*tmp)->answer != NULL && (*tmp)->status == CONNECT && \
-my_strcmp(client_team_list[i], (*tmp)->uuid) == 0) {
+strncmp(client_team_list[i], (*tmp)->uuid, SIZE_ID - 1) == 0) {
         realloc_client_answer(tmp, buffer);
     }
 }

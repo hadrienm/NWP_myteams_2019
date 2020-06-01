@@ -7,18 +7,15 @@
 
 #include "client.h"
 
-void send_decrypt(stoc_header_t *header, size_t readed, client_data **client)
+void send_decrypt(client_data **client)
 {
     char user_id[SIZE_ID];
     char message[DEFAULT_BODY_LENGTH];
-    size_t index = 0;
+    size_t index = HEADER_SIZE;
 
-    void *k = malloc(header->size);
-    read((*client)->master_socket, k, header->size);
-    memcpy(&user_id, k, SIZE_ID);
+    memcpy(&user_id, (*client)->read_buffer + index, SIZE_ID);
     index += SIZE_ID;
-    memcpy(&message, k + index, DEFAULT_BODY_LENGTH);
-    free(k);
+    memcpy(&message, (*client)->read_buffer + index, DEFAULT_BODY_LENGTH);
     client_event_private_message_received(user_id, message);
 }
 

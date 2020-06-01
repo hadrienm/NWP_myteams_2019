@@ -7,18 +7,15 @@
 
 #include "client.h"
 
-void logout_decrypt(stoc_header_t *header, size_t readed, client_data **client)
+void logout_decrypt(client_data **cli)
 {
     char user_id[SIZE_ID];
     char name[DEFAULT_NAME_LENGTH];
-    size_t index = 0;
+    size_t index = HEADER_SIZE;
 
-    void *k = malloc(header->size);
-    read((*client)->master_socket, k, header->size);
-    memcpy(&user_id, k, SIZE_ID);
+    memcpy(&user_id, (*cli)->read_buffer + index, SIZE_ID);
     index += SIZE_ID;
-    memcpy(&name, k + index, DEFAULT_NAME_LENGTH);
-    free(k);
+    memcpy(&name, (*cli)->read_buffer + index, DEFAULT_NAME_LENGTH);
     client_event_loggedout(user_id, name);
 }
 

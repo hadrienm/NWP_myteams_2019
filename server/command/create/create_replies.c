@@ -7,63 +7,81 @@
 
 #include "server.h"
 
-static void push_inside_file(FILE *pFile, char **uuid_thread, char temp[10], \
-ctos_create_t create)
+thread_t *find_thread_for_replies(team_t **t, char *path)
 {
-    fputs(uuid_thread[0], pFile);
-    fputs("\t", pFile);
-    fputs(temp, pFile);
-    fputs("\t", pFile);
-    fputs(create.message, pFile);
-    fputs("\t", pFile);
-}
+    thread_t *th = NULL;
 
-static int write_replies(char *str, char *temp, ctos_create_t create, \
-client_t **client)
-{
-    FILE *pFile;
-    char **uuid_thread = NULL;
-    char *description = get_description((*client)->use_path);
-
-    if (description == NULL) return 0;
-    pFile = fopen(str, "a");
-    uuid_thread = str_to_word_array(description, "\t");
-    if (uuid_thread == NULL || uuid_thread[0] == NULL) return 0;
-    if (pFile != NULL) {
-        push_inside_file(pFile, uuid_thread, temp, create);
-        fputs((*client)->uuid, pFile);
-        fputs("\n", pFile);
-        fclose(pFile);
-    } else {
-        free(description);
-        free_array(uuid_thread);
-        return 0;
+    for (channel_t *ch = (*t)->channel; ch; ch = ch->next) {
+        for (th = ch->thread; th && strcmp(th->path, path) != 0; \
+th = th->next);
+        if (th && strcmp(th->path, path) == 0)
+            return th;
     }
-    free(description);
-    free_array(uuid_thread);
-    return 1;
+    return NULL;
 }
 
-int add_message(client_t **client, ctos_create_t create, client_t **all)
+static void add_replies_simple(stoc_create_t c, thread_t **t, \
+server_data **s, client_t **client)
+{
+    replies_t *base = (*t)->reply;
+    replies_t *new_node = malloc(sizeof(replies_t));
+
+    if ((*t)->reply == NULL) {
+        memset(new_node->user_uuid, 0, SIZE_ID);
+        memset(new_node->body, 0, DEFAULT_BODY_LENGTH);
+        new_node->timestamp = c.timestamp;
+        memcpy(new_node->user_uuid, (*client)->uuid, strlen((*client)->uuid));
+        new_node->next = NULL;
+        memcpy(new_node->body, c.description, strlen(c.description));
+        (*t)->reply = new_node;
+    } else {
+        for (; base && base->next != NULL; base = base->next);
+        memset(new_node->user_uuid, 0, SIZE_ID);
+        memset(new_node->body, 0, DEFAULT_BODY_LENGTH);
+        new_node->timestamp = c.timestamp;
+        memcpy(new_node->user_uuid, (*client)->uuid, strlen((*client)->uuid));
+        new_node->next = NULL;
+        memcpy(new_node->body, c.description, strlen(c.description));
+        base->next = new_node;
+    }
+}
+
+static void replies_broadcast(client_t **client, stoc_create_t c, \
+server_data **s)
+{
+    void *buffer = NULL;
+    char *path = cut_path((*client)->use_path);
+    char *path_team = cut_path(path);
+    team_t *t = find_team(&(*s)->team, path_team);
+
+    send_create(client, 0, c);
+    buffer = create_set_broadcast_buffer(c);
+    create_subscribe_broadcast(buffer, &(*s)->client, \
+create_broadcast_subscribe_list(t, (*client)->uuid));
+    free(path_team);
+    free(path);
+    free(buffer);
+}
+
+int add_message(client_t ** client, ctos_create_t create, server_data **s, \
+char *uuid)
 {
     stoc_create_t c = memset_all(create, REPLIES, client);
-    char temp[10];
-    char *str = my_strcat((*client)->use_path, "/conversation.txt");
+    char *str = NULL;
+    team_t *t = find_team_for_replies(s, (*client)->use_path);
+    thread_t *th = NULL;
 
-    sprintf(temp, "%d", (int)time(NULL));
-    char *uuid_team = get_uuid_team((*client)->use_path);
-    sprintf(c.team_uuid, "%s", str_to_word_array(get_description\
-(get_uuid_team((*client)->use_path)), "\t")[0]);
-    write_replies(str, temp, create, client);
-    free(str);
-    str = get_uuid_parent_folder((*client)->use_path);
-    sprintf(c.thread_uuid, "%s", str);
-    server_event_thread_new_message(str, (*client)->uuid, create.message);
-    send_create(client, 0, c);
-    create_subscribe_broadcast(create_set_broadcast_buffer(c), all, \
-create_broadcast_subscribe_list(my_strcat(get_uuid_team((*client)->use_path), \
-"/default.txt"), (*client)->uuid));
-    free(str);
-    free(uuid_team);
+    if (strlen(create.message) == 0)
+        return 0;
+    if (!t)
+        return 1;
+    th = find_thread_for_replies(&t, (*client)->use_path);
+    if (!th)
+        return 1;
+    sprintf(c.team_uuid, "%s", t->uuid);
+    sprintf(c.thread_uuid, "%s", th->uuid);
+    add_replies_simple(c, &th, s, client);
+    server_event_thread_new_message(t->uuid, (*client)->uuid, create.message);
+    replies_broadcast(client, c, s);
     return 1;
 }

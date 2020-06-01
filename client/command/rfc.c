@@ -25,15 +25,15 @@ void rfc_decrypt_two(char rfc[RFC_MESSAGE_LENGTH], char id[SIZE_ID])
         rfc_decrypt_three(rfc, id);
 }
 
-void rfc_decrypt(stoc_header_t *header, size_t readed, client_data **client)
+void rfc_decrypt(client_data **client)
 {
-    char rfc[RFC_MESSAGE_LENGTH];
-    char id[SIZE_ID];
-    void *k = malloc(header->size);
+    char rfc[RFC_MESSAGE_LENGTH] = {0};
+    char id[SIZE_ID] = {0};
+    size_t index = HEADER_SIZE;
 
-    read((*client)->master_socket, k, header->size);
-    memcpy(&rfc, k, RFC_MESSAGE_LENGTH);
-    memcpy(&id, k + RFC_MESSAGE_LENGTH, SIZE_ID);
+    memcpy(&rfc, (*client)->read_buffer + index, RFC_MESSAGE_LENGTH);
+    index += RFC_MESSAGE_LENGTH;
+    memcpy(&id, (*client)->read_buffer + index, SIZE_ID);
     if (strncmp("500", rfc, 3) == 0)
         client_error_unauthorized();
     else if (strncmp("502", rfc, 3) == 0)
@@ -41,5 +41,4 @@ void rfc_decrypt(stoc_header_t *header, size_t readed, client_data **client)
     else
         rfc_decrypt_two(rfc, id);
     dprintf(1, "%s", rfc);
-    free(k);
 }

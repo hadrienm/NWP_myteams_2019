@@ -7,9 +7,9 @@
 
 #include "server.h"
 
-int check_users_is_log(char *user_id, client_t **all)
+int check_users_is_log(char *user_id, client_t *all)
 {
-    for (client_t *tmp = *all; tmp != NULL; tmp = tmp->next) {
+    for (client_t *tmp = all; tmp != NULL; tmp = tmp->next) {
         if (strncmp(tmp->uuid, user_id, SIZE_ID - 1) == 0)
             return 1;
     }

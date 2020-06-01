@@ -22,7 +22,7 @@ char *separate_line(char *line)
     return str;
 }
 
-void users(client_t *client, client_t **all)
+void users(client_t *client, server_data **server)
 {
     ctos_users_t users;
     command_status_t rfc;
@@ -33,6 +33,6 @@ void users(client_t *client, client_t **all)
         rfc = users_set_rfc(500);
         users_send_rfc(&client, rfc, 0);
     } else {
-        send_succes_list(&client, all);
+        send_succes_list(&client, *server);
     }
 }

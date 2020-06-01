@@ -145,6 +145,10 @@ typedef struct list_list_s {
 
 typedef struct server_to_client_info_s {
     stoc_header_t header;
+    char description[DEFAULT_BODY_LENGTH];
+    char name[DEFAULT_NAME_LENGTH];
+    char uuid[SIZE_ID];
+    int timestamp;
 }stoc_info_t;
 
 #endif /* !SERVER_TO_CLIENT_COMMAND_H_ */

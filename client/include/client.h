@@ -15,6 +15,7 @@
 
 typedef struct client {
     char **command;
+    char *read_buffer;
     char *name;
     char *ip;
     char *data;
@@ -22,6 +23,7 @@ typedef struct client {
     char *buffer;
     char *pending_command;
     ssize_t data_size;
+    size_t read_size;
     int port;
     int master_socket;
     struct sockaddr_in address;
@@ -32,8 +34,7 @@ typedef struct client {
 char **str_to_word_array(char *str, char *delimiter);
 
 extern void (* const command[])(client_data **client);
-extern void (* const decrypt_command[])(stoc_header_t *, size_t, \
-client_data **);
+extern void (* const decrypt_command[])(client_data **);
 extern const char *command_name[];
 extern volatile int stop;
 
@@ -70,7 +71,7 @@ void send_c(client_data **client);
 /* list all messages exchange with an user */
 void messages(client_data **client);
 /* subscribe to the event of a team and its sub directories (enable reception
- of all events from a team) */
+of all events from a team) */
 void subscribe(client_data **client);
 /* list all subscribed teams or list all users subscribed to a team */
 void subscribed(client_data **client);
@@ -84,21 +85,21 @@ void info(client_data **client);
 
 /* Decrypt Command */
 
-void help_decrypt(stoc_header_t *, size_t, client_data **);
-void login_decrypt(stoc_header_t *, size_t, client_data **);
-void logout_decrypt(stoc_header_t *, size_t, client_data **);
-void users_decrypt(stoc_header_t *, size_t, client_data **);
-void user_decrypt(stoc_header_t *, size_t, client_data **);
-void send_decrypt(stoc_header_t *, size_t, client_data **);
-void messages_decrypt(stoc_header_t *, size_t, client_data **);
-void subscribe_decrypt(stoc_header_t *, size_t, client_data **);
-void subscribed_decrypt(stoc_header_t *, size_t, client_data **);
-void unsubscribe_decrypt(stoc_header_t *, size_t, client_data **);
-void use_decrypt(stoc_header_t *, size_t, client_data **);
-void create_decrypt(stoc_header_t *, size_t, client_data **);
-void list_decrypt(stoc_header_t *, size_t, client_data **);
-void info_decrypt(stoc_header_t *, size_t, client_data **);
-void rfc_decrypt(stoc_header_t *, size_t, client_data **);
+void help_decrypt(client_data **);
+void login_decrypt(client_data **);
+void logout_decrypt(client_data **);
+void users_decrypt(client_data **);
+void user_decrypt(client_data **);
+void send_decrypt(client_data **);
+void messages_decrypt(client_data **);
+void subscribe_decrypt(client_data **);
+void subscribed_decrypt(client_data **);
+void unsubscribe_decrypt(client_data **);
+void use_decrypt(client_data **);
+void create_decrypt(client_data **);
+void list_decrypt(client_data **);
+void info_decrypt(client_data **);
+void rfc_decrypt(client_data **);
 
 /* use subfunction */
 
@@ -108,10 +109,19 @@ void event_create(void *k, int index);
 
 size_t size_array(char **array);
 char **get_client_command(char *line);
+char **get_command(char *buffer);
 char *delete_useless(char *str, char *delimiter);
 char *my_strcat(char *str, char *str2);
-void free_array(char **array);
+char *my_cut(char *str, int n);
+char *my_strdup(char *str);
 int my_strcmp(char *str1, char *str2);
+int count_how_many(char *str, char c);
+bool send_data(client_data * client);
+void launch_command(client_data **client);
+void execute_command(client_data **client);
+void save_decrypt_command(client_data **client, size_t this_read, \
+char *buffer);
+void free_array(char **array);
 
 typedef struct decrypt_subscribed_s
 {

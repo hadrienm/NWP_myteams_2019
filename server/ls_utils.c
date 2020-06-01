@@ -81,3 +81,20 @@ char **ls_files(char *path)
     free(str);
     return value;
 }
+
+char **list_files(void)
+{
+    char buff[1024] = {0};
+    char *str = NULL;
+    char **value = NULL;
+    FILE *file = popen("find ./save/ -maxdepth 1 -type f", "r");
+
+    while (!feof(file) && (fread(buff, 1, 1, file)) > 0)
+        my_const_strcat(&str, buff);
+    pclose(file);
+    if (str == NULL)
+        return NULL;
+    value = str_to_word_array(str, "\n");
+    free(str);
+    return value;
+}

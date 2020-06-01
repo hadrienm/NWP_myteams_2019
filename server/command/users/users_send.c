@@ -13,7 +13,7 @@ command_status_t users_set_rfc(int status)
 
     memset(&rfc, 0, sizeof(rfc));
     rfc.header.name = RFC;
-    rfc.header.size = rfc_content_size;
+    rfc.header.size = RFC_CONTENT_SIZE;
     memset(rfc.id, 0, SIZE_ID);
     if (status == 200)
         sprintf(rfc.rfc_message, "%s", rfc_message[CODE_200]);
@@ -25,9 +25,9 @@ command_status_t users_set_rfc(int status)
 void users_send_rfc(client_t **client, command_status_t rfc, size_t index)
 {
     if (index == 0) {
-        (*client)->answer = malloc(rfc_size);
-        memset((*client)->answer, 0, rfc_size);
-        (*client)->answer_size = rfc_size;
+        (*client)->answer = malloc(RFC_SIZE);
+        memset((*client)->answer, 0, RFC_SIZE);
+        (*client)->answer_size = RFC_SIZE;
     }
     memcpy((*client)->answer + index, &rfc.header.name, sizeof(int));
     index += sizeof(int);
@@ -57,7 +57,7 @@ static size_t send_users_answere(client_t **client, users_list_t **list)
 {
     stoc_users_t users;
     size_t list_size = size_of_users_list(list);
-    size_t size = users_size * list_size + rfc_size;
+    size_t size = USERS_SIZE * list_size + RFC_SIZE;
     size_t index = 0;
 
     (*client)->answer = malloc(size);
@@ -68,14 +68,14 @@ static size_t send_users_answere(client_t **client, users_list_t **list)
     return index;
 }
 
-void send_succes_list(client_t **client, client_t **all)
+void send_succes_list(client_t **client, server_data *server)
 {
     command_status_t rfc;
     users_list_t *users_list = NULL;
     size_t index = 0;
 
     rfc = users_set_rfc(200);
-    create_users_list(client, all, &users_list);
+    create_users_list(client, server, &users_list);
     index = send_users_answere(client, &users_list);
     users_send_rfc(client, rfc, index);
     free_users_list(&users_list);

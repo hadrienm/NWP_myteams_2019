@@ -13,7 +13,7 @@ stoc_create_t memset_all(ctos_create_t create, int local, client_t **cli)
 
     memset(&c, 0, sizeof(stoc_create_t));
     c.header.name = CREATE;
-    c.header.size = create_content_size;
+    c.header.size = CREATE_CONTENT_SIZE;
     c.timestamp = (int)time(NULL);
     c.local = local;
     memset(c.team_uuid, 0, SIZE_ID);
@@ -32,17 +32,21 @@ command_status_t set_create_rfc(int status)
 {
     command_status_t rfc;
 
-    memset(&rfc, 0, rfc_size);
+    memset(&rfc, 0, RFC_SIZE);
     memset(rfc.rfc_message, 0, RFC_MESSAGE_LENGTH);
     memset(rfc.id, 0, SIZE_ID);
     rfc.header.name = RFC;
-    rfc.header.size = rfc_content_size;
+    rfc.header.size = RFC_CONTENT_SIZE;
     if (status == 200)
         sprintf(rfc.rfc_message, "%s", rfc_message[CODE_200]);
     else if (status == 500)
         sprintf(rfc.rfc_message, "%s", rfc_message[CODE_500]);
-    else
-        sprintf(rfc.rfc_message, "%s", rfc_message[CODE_506]);
+    else {
+        if (status == 401)
+            sprintf(rfc.rfc_message, "%s", rfc_message[CODE_401]);
+        else
+            sprintf(rfc.rfc_message, "%s", rfc_message[CODE_506]);
+    }
     return rfc;
 }
 
@@ -61,9 +65,9 @@ static void send_create_two(client_t **client, size_t index, stoc_create_t c)
 
 void send_create(client_t **client, size_t index, stoc_create_t c)
 {
-    (*client)->answer = malloc(create_size + rfc_size);
+    (*client)->answer = malloc(CREATE_SIZE + RFC_SIZE);
 
-    memset((*client)->answer, 0, create_size + rfc_size);
+    memset((*client)->answer, 0, CREATE_SIZE + RFC_SIZE);
     memcpy((*client)->answer, &c.header.name, sizeof(int));
     index += sizeof(int);
     memcpy((*client)->answer + index, &c.header.size, sizeof(size_t));
@@ -75,6 +79,6 @@ void send_create(client_t **client, size_t index, stoc_create_t c)
     memcpy((*client)->answer + index, &c.user_uuid, SIZE_ID);
     index += SIZE_ID;
     send_create_two(client, index, c);
-    send_rfc(client, set_create_rfc(200), create_size);
-    (*client)->answer_size = create_size + rfc_size;
+    send_rfc(client, set_create_rfc(200), CREATE_SIZE);
+    (*client)->answer_size = CREATE_SIZE + RFC_SIZE;
 }

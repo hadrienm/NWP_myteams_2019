@@ -7,7 +7,7 @@
 
 #include "server.h"
 
-void messages(client_t *client, client_t **all)
+void messages(client_t *client, server_data **server)
 {
     ctos_messages_t messages;
 
@@ -18,6 +18,6 @@ void messages(client_t *client, client_t **all)
     } else if (strlen(messages.id) == 0) {
         send_message_rfc(401, &client, messages.id);
     } else {
-        messages_success(&client, messages.id);
+        messages_success(&client, messages.id, (*server)->crp_list);
     }
 }

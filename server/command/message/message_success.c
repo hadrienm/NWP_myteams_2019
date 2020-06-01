@@ -61,18 +61,16 @@ DEFAULT_BODY_LENGTH) * list_size + sizeof(int) + sizeof(size_t) \
     send_rfc_success(size, client, i);
 }
 
-void messages_success(client_t **client, char id[SIZE_ID])
+void messages_success(client_t **client, char id[SIZE_ID], \
+corresponding_t *cpr_list)
 {
     messages_list_t *messages_list = NULL;
     char *path = NULL;
     char *list = NULL;
 
-    path = message_create_path(id, (*client)->uuid);
-    if (path == NULL) {
-        send_message_rfc(502, client, id);
-        return;
-    }
-    list = list_conversation(path);
+    if (found_conversation(id, (*client)->uuid, cpr_list) == false)
+        return send_message_rfc(502, client, id);
+    list = list_conversation((*client)->uuid, id, cpr_list);
     init_message_list(&messages_list, list);
     send_mesages_answere(list, client, &messages_list);
     free(list);

@@ -29,28 +29,6 @@ char *get_name(char *str)
     return value;
 }
 
-int list_teams(client_t ** client, ctos_list_t * list)
-{
-    char **list_folders = ls_directories("./save/");
-    char *str = NULL;
-    char *save = NULL;
-
-    for (int i = 0; list_folders[i]; ++i) {
-        if (str != NULL) {
-            save = strdup(str);
-            free(str);
-            str = get_name(my_strcat(save, list_folders[i]));
-            free(save);
-            save = my_strcat(str, "|");
-            free(str);
-            str = strdup(save);
-        } else {
-            str = get_name(my_strcat(list_folders[i], "|"));
-        }
-    }
-    free_array(list_folders);
-}
-
 char *get_description(char *path)
 {
     char *str = my_strcat(path, "/default.txt");
@@ -72,13 +50,18 @@ char *get_description(char *path)
     free(str);
     str = strdup(line);
     fclose(file);
+    free(line);
     return str;
 }
 
 char *get_all_info(char *name, char *path)
 {
     char *str = strdup(name);
+    char *save = NULL;
+
     my_const_strcat(&str, "\t");
-    my_const_strcat(&str, get_description(path));
+    save = get_description(path);
+    my_const_strcat(&str, save);
+    free(save);
     return str;
 }

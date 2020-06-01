@@ -10,9 +10,9 @@
 void send_rfc(client_t **client, command_status_t rfc, size_t index)
 {
     if (index == 0) {
-        (*client)->answer = malloc(rfc_size);
-        memset((*client)->answer, 0, rfc_size);
-        (*client)->answer_size = rfc_size;
+        (*client)->answer = malloc(RFC_SIZE);
+        memset((*client)->answer, 0, RFC_SIZE);
+        (*client)->answer_size = RFC_SIZE;
     }
     memcpy((*client)->answer + index, &rfc.header.name, sizeof(int));
     index += sizeof(int);
@@ -32,16 +32,17 @@ command_status_t set_send_rfc(int status, char id[SIZE_ID])
     memset(rfc.rfc_message, 0, RFC_MESSAGE_LENGTH);
     memset(rfc.id, 0, SIZE_ID);
     rfc.header.name = RFC;
-    rfc.header.size = rfc_content_size;
+    rfc.header.size = RFC_CONTENT_SIZE;
     if (status == 500) {
         sprintf(rfc.rfc_message, "%s", rfc_message[CODE_500]);
     } else if (status == 401) {
         sprintf(rfc.rfc_message, "%s", rfc_message[CODE_401]);
-    } else if (status == 502) {
-        sprintf(rfc.id, "%s", id);
-        sprintf(rfc.rfc_message, "%s", rfc_message[CODE_502]);
     } else {
-        sprintf(rfc.rfc_message, "%s", rfc_message[CODE_200]);
+        if (status == 502) {
+            sprintf(rfc.id, "%s", id);
+            sprintf(rfc.rfc_message, "%s", rfc_message[CODE_502]);
+        } else
+            sprintf(rfc.rfc_message, "%s", rfc_message[CODE_200]);
     }
     return rfc;
 }

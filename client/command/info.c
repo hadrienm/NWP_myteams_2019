@@ -7,8 +7,29 @@
 
 #include "client.h"
 
-void info_decrypt(stoc_header_t *header, size_t readed, client_data **client)
+void info_decrypt(client_data **client)
 {
+    char uuid[SIZE_ID] = {0};
+    char name[DEFAULT_NAME_LENGTH] = {0};
+    char description[DEFAULT_BODY_LENGTH] = {0};
+    int timestamp = 0;
+    time_t time;
+    size_t index = HEADER_SIZE;
+
+    memcpy(&description, (*client)->read_buffer + index, DEFAULT_BODY_LENGTH);
+    index += DEFAULT_BODY_LENGTH;
+    memcpy(&name, (*client)->read_buffer + index, DEFAULT_NAME_LENGTH);
+    index += DEFAULT_NAME_LENGTH;
+    memcpy(&uuid, (*client)->read_buffer + index, SIZE_ID);
+    index += SIZE_ID;
+    memcpy(&timestamp, (*client)->read_buffer + index, sizeof(int));
+    time = (time_t)timestamp;
+    if (strlen(description) == 0)
+        dprintf(1, "info: %s %s\n", name, uuid);
+    else if (timestamp == 0)
+        dprintf(1, "info: %s %s %s\n", name, uuid, description);
+    else
+        dprintf(1, "info: %s %s %s %s", name, uuid, description, ctime(&time));
 }
 
 void info(client_data **client)

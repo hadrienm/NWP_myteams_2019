@@ -1,48 +1,11 @@
 /*
 ** EPITECH PROJECT, 2020
-** NWP_myteams_2019
+** Visual Studio Live Share (Workspace)
 ** File description:
 ** init
 */
 
 #include "server.h"
-
-static void handle_line(char *line)
-{
-    char *tmp_name = malloc(sizeof(char) * (strlen(line) - SIZE_ID + 1));
-    char *tmp_id = malloc(sizeof(char) * SIZE_ID);
-    int index = 0;
-
-    memset(tmp_id, 0, SIZE_ID);
-    memset(tmp_name, 0, strlen(line) - SIZE_ID + 1);
-    for (int i = 0; i < SIZE_ID - 1; ++i, ++index)
-        tmp_id[i] = line[index];
-    for (int i = 0; line[index] != '\0'; ++i, ++index) {
-        if (line[index] == '\n')
-            break;
-        tmp_name[i] = line[index];
-    }
-    server_event_user_loaded(tmp_id, tmp_name);
-    free(tmp_name);
-    free(tmp_id);
-}
-
-void load_client(void)
-{
-    FILE *file = fopen("./save/client.txt", "r");
-    int read = 0;
-    size_t useless = 0;
-    char *line = NULL;
-
-    if (file == NULL)
-        return;
-    while ((read = getline(&line, &useless, file)) != -1) {
-        if (strlen(line) > SIZE_ID)
-            handle_line(line);
-    }
-    fclose(file);
-    line != NULL ? free(line) : 0;
-}
 
 bool init_server_data(server_data **server)
 {

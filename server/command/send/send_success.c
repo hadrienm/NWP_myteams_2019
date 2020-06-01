@@ -14,9 +14,9 @@ void *buffer)
 
     for (client_t *tmp = *all; tmp != NULL; tmp = tmp->next) {
         if (strcmp(uuid, tmp->uuid) == 0) {
-            tmp->answer = malloc(send_size);
-            memcpy(tmp->answer, buffer, send_size);
-            tmp->answer_size = send_size;
+            tmp->answer = malloc(SEND_SIZE);
+            memcpy(tmp->answer, buffer, SEND_SIZE);
+            tmp->answer_size = SEND_SIZE;
             return;
         }
     }
@@ -25,9 +25,9 @@ void *buffer)
 static void *set_send_buffer(stoc_send_t send)
 {
     size_t index = 0;
-    void *buffer = malloc(send_size);
+    void *buffer = malloc(SEND_SIZE);
 
-    memset(buffer, 0, send_size);
+    memset(buffer, 0, SEND_SIZE);
     memcpy(buffer + index, &send.header.name, sizeof(int));
     index += sizeof(int);
     memcpy(buffer + index, &send.header.size, sizeof(size_t));
@@ -42,13 +42,12 @@ static void *set_send_buffer(stoc_send_t send)
 void set_send_s(client_t **client, ctos_send_t sender, client_t **all)
 {
     stoc_send_t send;
-    size_t size = rfc_size;
     command_status_t rfc = set_send_rfc(200, NULL);
     void *buffer;
 
     memset(&send, 0, sizeof(send));
     send.header.name = SEND;
-    send.header.size = send_content_size;
+    send.header.size = SEND_CONTENT_SIZE;
     memset(send.user_id, 0, SIZE_ID);
     memset(send.message_body, 0, DEFAULT_BODY_LENGTH);
     sprintf(send.user_id, "%s", (*client)->uuid);

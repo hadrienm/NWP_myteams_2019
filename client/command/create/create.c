@@ -7,7 +7,7 @@
 
 #include "client.h"
 
-static void print_create_int(void *buffer, int index, char *array[5])
+static void print_create_int(char *buffer, int index, stoc_create_t c)
 {
     location_t local;
     int timestamp;
@@ -15,51 +15,50 @@ static void print_create_int(void *buffer, int index, char *array[5])
     memcpy(&local, buffer + index, sizeof(int));
     index += sizeof(int);
     memcpy(&timestamp, buffer + index, sizeof(int));
-    if (local == TEAM)
-        client_print_team_created(array[0], array[3], array[4]);
-    else if (local == CHANNEL)
-        client_print_channel_created(array[0], array[3], array[4]);
-    else if (local == THREAD)
-        client_print_thread_created(array[0], array[1], timestamp, array[3], \
-array[4]);
-    else
-        client_print_reply_created(array[2], array[1], timestamp, array[4]);
+    switch (local) {
+    case TEAM:
+        return (void)client_print_team_created(c.team_uuid, c.name, \
+c.description);
+    case CHANNEL:
+        return (void)client_print_channel_created(c.team_uuid, c.name, \
+c.description);
+    case THREAD:
+        return (void)client_print_thread_created(c.team_uuid, c.user_uuid, \
+timestamp, c.name, c.description);
+    default:
+        return (void)client_print_reply_created(c.thread_uuid, c.user_uuid, \
+timestamp, c.description);
+    }
 }
 
-static void print_create(void *buffer, size_t index)
+static void print_create(char *buffer, size_t index)
 {
-    char team_uuid[SIZE_ID];
-    char user_uuid[SIZE_ID];
-    char thread_uuid[SIZE_ID];
-    char name[DEFAULT_NAME_LENGTH];
-    char description[DEFAULT_BODY_LENGTH];
+    stoc_create_t create;
 
-    memcpy(&team_uuid, buffer + index, SIZE_ID);
+    memcpy(&create.team_uuid, buffer + index, SIZE_ID);
     index += SIZE_ID;
-    memcpy(&user_uuid, buffer + index, SIZE_ID);
+    memcpy(&create.user_uuid, buffer + index, SIZE_ID);
     index += SIZE_ID;
-    memcpy(&thread_uuid, buffer + index, SIZE_ID);
+    memcpy(&create.thread_uuid, buffer + index, SIZE_ID);
     index += SIZE_ID;
-    memcpy(&name, buffer + index, DEFAULT_NAME_LENGTH);
+    memcpy(&create.name, buffer + index, DEFAULT_NAME_LENGTH);
     index += DEFAULT_NAME_LENGTH;
-    memcpy(&description, buffer + index, DEFAULT_BODY_LENGTH);
+    memcpy(&create.description, buffer + index, DEFAULT_BODY_LENGTH);
     index += DEFAULT_BODY_LENGTH;
-    print_create_int(buffer, index, (char *[5]){team_uuid, user_uuid, \
-thread_uuid, name, description});
+    print_create_int(buffer, index, create);
 }
 
-void create_decrypt(stoc_header_t *header, size_t readed, client_data **client)
+void create_decrypt(client_data **client)
 {
     bool event;
-    void *k = malloc(header->size);
+    size_t index = HEADER_SIZE;
 
-    read((*client)->master_socket, k, header->size);
-    memcpy(&event, k, sizeof(bool));
+    memcpy(&event, (*client)->read_buffer + index, sizeof(bool));
+    index += sizeof(bool);
     if (event)
-        event_create(k, sizeof(bool));
+        print_create((*client)->read_buffer, index);
     else
-        print_create(k, sizeof(bool));
-    free(k);
+        event_create((*client)->read_buffer, index);
 }
 
 void create(client_data **client)

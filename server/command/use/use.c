@@ -7,15 +7,21 @@
 
 #include "server.h"
 
+void free_path(client_t *client)
+{
+    client->use_path != NULL ? free(client->use_path) : 0;
+    client->use_path = NULL;
+}
+
 static command_status_t use_set_rfc(int status, char id[SIZE_ID])
 {
     command_status_t rfc;
 
-    memset(&rfc, 0, rfc_size);
+    memset(&rfc, 0, RFC_SIZE);
     memset(rfc.id, 0, SIZE_ID);
     memset(rfc.rfc_message, 0, RFC_MESSAGE_LENGTH);
     rfc.header.name = RFC;
-    rfc.header.size = rfc_content_size;
+    rfc.header.size = RFC_CONTENT_SIZE;
     if (status == 500)
         sprintf(rfc.rfc_message, "%s", rfc_message[CODE_500]);
     else if (status == 200)
@@ -32,25 +38,40 @@ static command_status_t use_set_rfc(int status, char id[SIZE_ID])
     return rfc;
 }
 
-void use_two(ctos_use_t use, client_t *client)
+static command_status_t use_set_rfc_ns(void)
+{
+    command_status_t rfc;
+
+    memset(&rfc, 0, RFC_SIZE);
+    memset(rfc.id, 0, SIZE_ID);
+    memset(rfc.rfc_message, 0, RFC_MESSAGE_LENGTH);
+    rfc.header.name = RFC;
+    rfc.header.size = RFC_CONTENT_SIZE;
+    sprintf(rfc.rfc_message, "%s", rfc_message[CODE_501]);
+    return rfc;
+}
+
+void use_two(ctos_use_t use, client_t *client, server_data **server)
 {
     if (strlen(use.channel_uuid) != 0) {
-        find_channel(&client, use.channel_uuid);
-        if (client->use_path == NULL)
+        find_channel(use.channel_uuid, server, &client);
+        if (client->use_path == NULL) {
             return send_rfc(&client, use_set_rfc(504, use.channel_uuid), 0);
-        else if (strlen(use.thread_uuid) == 0)
+        } else if (strlen(use.thread_uuid) == 0) {
             send_rfc(&client, use_set_rfc(200, NULL), 0);
+        }
     }
     if (strlen(use.thread_uuid) != 0) {
-        find_thread(&client, use.thread_uuid);
-        if (client->use_path == NULL)
+        find_thread(use.thread_uuid, server, &client);
+        if (client->use_path == NULL) {
             return send_rfc(&client, use_set_rfc(505, use.thread_uuid), 0);
-        else
+        } else {
             send_rfc(&client, use_set_rfc(200, NULL), 0);
+        }
     }
 }
 
-void use(client_t *client, client_t **all)
+void use(client_t *client, server_data **server)
 {
     ctos_use_t use;
 
@@ -63,14 +84,14 @@ void use(client_t *client, client_t **all)
         client->use_path = NULL;
         return send_rfc(&client, use_set_rfc(200, NULL), 0);
     }
-    find_teams(&client, use.team_uuid);
-    if (client->use_path == NULL)
+    find_teams(use.team_uuid, server, &client);
+    if (client->use_path == NULL) {
         return send_rfc(&client, use_set_rfc(503, use.team_uuid), 0);
-    else if (!subscribe_read(client->use_path, client->uuid)) {
-        free(client->use_path);
-        client->use_path = NULL;
-        return;
-    } else if (strlen(use.channel_uuid) == 0)
-        send_rfc(&client, use_set_rfc(200, NULL), 0);
-    use_two(use, client);
+    } else if (!subscribe_read((*server)->team, client->uuid, use.team_uuid)) {
+        send_rfc(&client, use_set_rfc_ns(), 0);
+        return free_path(client);
+    } else
+        if (strlen(use.channel_uuid) == 0)
+            return send_rfc(&client, use_set_rfc(200, NULL), 0);
+    use_two(use, client, server);
 }

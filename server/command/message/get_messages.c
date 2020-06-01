@@ -7,53 +7,46 @@
 
 #include "server.h"
 
-static char *check_file_is_exist(char *path1, char *path2)
-{
-    if (access(path1, F_OK) == -1 && access(path2, F_OK) == -1) {
-        return NULL;
-    } else if (access(path1, F_OK) == -1) {
-        free(path1);
-        return path2;
-    } else {
-        free(path2);
-        return path1;
-    }
-}
-
-char *message_create_path(char id[SIZE_ID], char *user_id)
+bool found_conversation(char *uuid1, char *uuid2, corresponding_t *cpr_list)
 {
     char *path1 = NULL;
     char *path2 = NULL;
     char *str = NULL;
 
-    my_const_strcat(&path1, "./save/");
-    my_const_strcat(&path1, id);
-    my_const_strcat(&path1, user_id);
-    my_const_strcat(&path1, ".txt");
-    my_const_strcat(&path2, "./save/");
-    my_const_strcat(&path2, user_id);
-    my_const_strcat(&path2, id);
-    my_const_strcat(&path2, ".txt");
-    str = check_file_is_exist(path1, path2);
-    return str;
+    for (corresponding_t *tmp = cpr_list; tmp != NULL; tmp = tmp->next) {
+        if ((strcmp(uuid1, tmp->uuid1) == 0 || \
+strcmp(uuid1, tmp->uuid2) == 0) && (strcmp(uuid2, tmp->uuid1) == 0 || \
+strcmp(uuid2, tmp->uuid2) == 0))
+            return true;
+    }
+    return false;
 }
 
-char *list_conversation(char *path)
+static char * create_line(cpr_message_list_t *msg_list)
 {
-    FILE *file = fopen(path, "r");
-    char *line = NULL;
     char *answer = NULL;
-    size_t useless = 0;
-    int read = 0;
+    char buff[30] = {0};
 
-    if (file != NULL) {
-        while ((read = getline(&line, &useless, file)) != -1) {
-            strlen(line) >= SIZE_ID - 1 ? my_const_strcat(&answer, line) : 0;
-        }
-        fclose(file);
+    for (cpr_message_list_t *tmp = msg_list; tmp != NULL; tmp = tmp->next) {
+        my_const_strcat(&answer, tmp->message.uuid);
+        my_const_strcat(&answer, "\t");
+        sprintf(buff, "%d", tmp->message.timestamp);
+        my_const_strcat(&answer, buff);
+        my_const_strcat(&answer, "\t");
+        my_const_strcat(&answer, tmp->message.message);
+        my_const_strcat(&answer, "\n");
     }
-    line != NULL ? free(line) : 0;
     return answer;
+}
+
+char *list_conversation(char *uuid1, char *uuid2, corresponding_t *cpr_list)
+{
+    for (corresponding_t *tmp = cpr_list; tmp != NULL; tmp = tmp->next) {
+        if ((strcmp(uuid1, tmp->uuid1) == 0 || \
+strcmp(uuid1, tmp->uuid2) == 0) && (strcmp(uuid2, tmp->uuid1) == 0 || \
+strcmp(uuid2, tmp->uuid2) == 0))
+            return create_line(tmp->msg_list);
+    }
 }
 
 size_t size_of_list(messages_list_t *list)

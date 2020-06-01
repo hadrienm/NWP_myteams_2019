@@ -7,82 +7,51 @@
 
 #include "server.h"
 
-static char *get_team_info(char *path)
+static bool is_subscribe_to_team(char *user_uid, char **user_list)
 {
-    char *str = my_strcat(path, "/default.txt");
-    FILE *file = fopen(str, "r");
-    size_t useless = 0;
-    char *line = NULL;
-
-    if (file == NULL) {
-        free(str);
-        return NULL;
-    }
-    getline(&line, &useless, file);
-    fclose(file);
-    free(str);
-    return line;
-}
-
-char **subscribed_create_teams_list(char **folders, char *uuid)
-{
-    char *tmp = NULL;
-    char *info = NULL;
-    char **list = NULL;
-
-    if (!folders)
-        return NULL;
-    for (int i = 0; folders && folders[i]; ++i) {
-        if (subscribe_read(folders[i], uuid) == true) {
-            info = get_team_info(folders[i]);
-            my_const_strcat(&tmp, info);
-        }
-    }
-    if (tmp == NULL)
-        return NULL;
-    list = str_to_word_array(tmp, "\n");
-    free(info);
-    free(tmp);
-    return list;
-}
-
-bool check_team(char team_id[SIZE_ID])
-{
-    char **list_folders = ls_directories("./save/");
-    char *tmp = NULL;
-
-    for (int i = 0; list_folders && list_folders[i] != NULL; ++i) {
-        tmp = get_team_info(list_folders[i]);
-        if (strncmp(team_id, tmp, SIZE_ID - 1) == 0) {
-            free(tmp);
-            free_array(list_folders);
+    if (user_list == NULL)
+        return false;
+    for (size_t i = 0; user_list[i] != NULL; ++i) {
+        if (strncmp(user_uid, user_list[i], SIZE_ID - 1) == 0)
             return true;
+    }
+}
+
+char **subscribed_create_teams_list(server_data *server, char *uuid)
+{
+    char *str = NULL;
+    char **value = NULL;
+    char buff[30] = {0};
+
+    for (team_t *tmp = server->team; tmp != NULL; tmp = tmp->next) {
+        if (is_subscribe_to_team(uuid, tmp->user_subscribe) == true) {
+            my_const_strcat(&str, tmp->uuid);
+            my_const_strcat(&str, "\t");
+            sprintf(buff, "%d", (int)time(NULL));
+            my_const_strcat(&str, buff);
+            my_const_strcat(&str, "\t");
+            my_const_strcat(&str, tmp->name);
+            my_const_strcat(&str, "\n");
         }
     }
-    free(tmp);
-    free(list_folders);
+    if (str == NULL)
+        return NULL;
+    value = str_to_word_array(str, "\n");
+    free(str);
+    return value;
+}
+
+bool check_team(char team_id[SIZE_ID], server_data *server)
+{
+    for (team_t *tmp = server->team; tmp != NULL; tmp = tmp->next)
+        if (strncmp(team_id, tmp->uuid, SIZE_ID - 1) == 0)
+            return true;
     return false;
 }
 
-char **subscribed_create_users_list(char team_id[SIZE_ID])
+char **subscribed_create_users_list(char team_id[SIZE_ID], server_data *server)
 {
-    char *path = found_path_team(team_id);
-    FILE *file = fopen(path, "r");
-    size_t useless = 0;
-    char *line = NULL;
-    char *tmp = NULL;
-    char **list = NULL;
-
-    if (file == NULL) {
-        free(path);
-        return NULL;
-    }
-    for (size_t i = 0; getline(&line, &useless, file) != -1; ++i)
-        i > 0 ? my_const_strcat(&tmp, line) : 0;
-    fclose(file);
-    if (tmp != NULL)
-        list = str_to_word_array(tmp, "\n");
-    free(path);
-    free(tmp);
-    return list;
+    for (team_t *tmp = server->team; tmp != NULL; tmp = tmp->next)
+        if (strncmp(team_id, tmp->uuid, SIZE_ID - 1) == 0)
+            return copy_array(tmp->user_subscribe);
 }

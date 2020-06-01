@@ -30,13 +30,13 @@ static void server_send_rfc(client_t **client)
 
     memset(&rfc, 0, sizeof(rfc));
     rfc.header.name = RFC;
-    rfc.header.size = rfc_content_size;
+    rfc.header.size = RFC_CONTENT_SIZE;
     memset(rfc.rfc_message, 0, RFC_MESSAGE_LENGTH);
     memset(rfc.id, 0, SIZE_ID);
     sprintf(rfc.rfc_message, "%s", rfc_message[CODE_201]);
-    (*client)->answer = malloc(rfc_size);
-    memset((*client)->answer, 0, rfc_size);
-    (*client)->answer_size = rfc_size;
+    (*client)->answer = malloc(RFC_SIZE);
+    memset((*client)->answer, 0, RFC_SIZE);
+    (*client)->answer_size = RFC_SIZE;
     memcpy((*client)->answer + index, &rfc.header.name, sizeof(int));
     index += sizeof(int);
     memcpy((*client)->answer + index, &rfc.header.size, sizeof(size_t));

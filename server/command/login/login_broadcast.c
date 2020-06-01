@@ -33,7 +33,7 @@ tmp->socket != socket) {
 
 void set_login_brodcast(stoc_login_t login, client_t **all, int socket)
 {
-    size_t size = login_size;
+    size_t size = LOGIN_SIZE;
     size_t index = 0;
     void *buffer = NULL;
 

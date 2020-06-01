@@ -7,21 +7,18 @@
 
 #include "client.h"
 
-void user_decrypt(stoc_header_t *header, size_t readed, client_data **client)
+void user_decrypt(client_data **client)
 {
     char user_id[SIZE_ID];
     char name[DEFAULT_NAME_LENGTH];
     int status = 0;
-    size_t index = 0;
+    size_t index = HEADER_SIZE;
 
-    void *k = malloc(header->size);
-    read((*client)->master_socket, k, header->size);
-    memcpy(&user_id, k, SIZE_ID);
+    memcpy(&user_id, (*client)->read_buffer + index, SIZE_ID);
     index += SIZE_ID;
-    memcpy(&name, k + index, DEFAULT_NAME_LENGTH);
+    memcpy(&name, (*client)->read_buffer + index, DEFAULT_NAME_LENGTH);
     index += DEFAULT_NAME_LENGTH;
-    memcpy(&status, k + index, sizeof(int));
-    free(k);
+    memcpy(&status, (*client)->read_buffer + index, sizeof(int));
     client_print_user(user_id, name, status);
 }
 

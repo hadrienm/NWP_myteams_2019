@@ -20,9 +20,11 @@ static command_status_t set_send_messages(int status, char id[SIZE_ID])
         sprintf(rfc.rfc_message, "%s", rfc_message[CODE_500]);
     else if (status == 401)
         sprintf(rfc.rfc_message, "%s", rfc_message[CODE_401]);
-    else if (status == 502) {
-        sprintf(rfc.id, "%s", id);
-        sprintf(rfc.rfc_message, "%s", rfc_message[CODE_502]);
+    else {
+        if (status == 502) {
+            sprintf(rfc.id, "%s", id);
+            sprintf(rfc.rfc_message, "%s", rfc_message[CODE_502]);
+        }
     }
     return rfc;
 }

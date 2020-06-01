@@ -1,6 +1,6 @@
 /*
 ** EPITECH PROJECT, 2020
-** NWP_myteams_2019
+** Visual Studio Live Share (Workspace)
 ** File description:
 ** init_client
 */
@@ -35,4 +35,6 @@ void init_client(client_data **client)
     (*client)->master_socket = 0;
     (*client)->buffer = NULL;
     (*client)->pending_command = NULL;
+    (*client)->read_buffer = NULL;
+    (*client)->read_size = 0;
 }

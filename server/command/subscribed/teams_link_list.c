@@ -7,8 +7,7 @@
 
 #include "server.h"
 
-static void add_first_team(subscribed_list_t **list, char **details, \
-client_t **all)
+static void add_first_team(subscribed_list_t **list, char **details)
 {
     subscribed_list_t *new_node = malloc(sizeof(subscribed_list_t));
 
@@ -17,7 +16,7 @@ client_t **all)
     memset(&new_node->subscribed.team_id, 0, SIZE_ID);
     new_node->subscribed.timestamp = 0;
     new_node->subscribed.header.name = SUBSCRIBED;
-    new_node->subscribed.header.size = subscribed_content_size;
+    new_node->subscribed.header.size = SUBSCRIBED_CONTENT_SIZE;
     sprintf(new_node->subscribed.team_id, "%s", details[0]);
     sprintf(new_node->subscribed.desription, "%s", details[2]);
     new_node->subscribed.timestamp = atoi(details[1]);
@@ -25,14 +24,13 @@ client_t **all)
     (*list) = new_node;
 }
 
-static void add_node_team_list(subscribed_list_t **list, char **details, \
-client_t **all)
+static void add_node_team_list(subscribed_list_t **list, char **details)
 {
     subscribed_list_t *new_node = NULL;
     subscribed_list_t *base = NULL;
 
     if (*list == NULL)
-        return add_first_team(list, details, all);
+        return add_first_team(list, details);
     new_node = malloc(sizeof(subscribed_list_t));
     base = (*list);
     for (; base->next != NULL; base = base->next);
@@ -41,7 +39,7 @@ client_t **all)
     memset(&new_node->subscribed.team_id, 0, SIZE_ID);
     new_node->subscribed.timestamp = 0;
     new_node->subscribed.header.name = SUBSCRIBED;
-    new_node->subscribed.header.size = subscribed_content_size;
+    new_node->subscribed.header.size = SUBSCRIBED_CONTENT_SIZE;
     sprintf(new_node->subscribed.team_id, "%s", details[0]);
     sprintf(new_node->subscribed.desription, "%s", details[2]);
     new_node->subscribed.timestamp = atoi(details[1]);
@@ -49,18 +47,17 @@ client_t **all)
     base->next = new_node;
 }
 
-static void handle_teams_list(subscribed_list_t **teams_list, char *line, \
-client_t **all)
+static void handle_teams_list(subscribed_list_t **teams_list, char *line)
 {
     char **team_details = str_to_word_array(line, "\t");
 
-    add_node_team_list(teams_list, team_details, all);
+    add_node_team_list(teams_list, team_details);
     free_array(team_details);
 }
 
-void subscribed_create_teams_link_list(client_t **client, client_t **all, \
+void subscribed_create_teams_link_list(client_t **client, \
 subscribed_list_t **teams_list, char **list)
 {
     for (size_t i = 0; list[i] != NULL; ++i)
-        handle_teams_list(teams_list, list[i], all);
+        handle_teams_list(teams_list, list[i]);
 }
